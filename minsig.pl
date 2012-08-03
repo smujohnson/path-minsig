@@ -24,7 +24,10 @@ my @dir_chunks_shortened = @dir_chunks;
 
 for (my $i = 0; $i < (@dir_chunks - 1); ++$i) {
   if (defined($dir_chunks[$i + 2])) {
-    $dir_chunks_shortened[$i + 1] = transformMinimalSignificant(join ($dir_separator, @dir_chunks[ 0 .. $i ]), $dir_chunks[$i + 1]);
+    my $path_base = join ($dir_separator, @dir_chunks[ 0 .. $i ]);
+    my $path_to_shorten = $dir_chunks[$i + 1];
+
+    $dir_chunks_shortened[$i + 1] = transformMinimalSignificant($path_base, $path_to_shorten);
   } else {
     last;
   }
@@ -38,12 +41,13 @@ sub transformMinimalSignificant {
   my $path_base = shift;
   my $path_to_shorten = shift;
 
-  my @globbed_dirs = map { basename($_) } getGlobDirs($path_base);
+  my @tmp_dirs = map { basename($_) } getGlobDirs($path_base);
 
   my $build = '';
   foreach (split //, $path_to_shorten) {
     $build .= $_;
-    return $build if (grep { m[^$build] } @globbed_dirs) == 1;
+    @tmp_dirs = grep { m[^$build] } @tmp_dirs;
+    return $build if @tmp_dirs == 1;
   }
 
   return $build;
